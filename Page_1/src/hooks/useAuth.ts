@@ -10,21 +10,23 @@ export function useAuth() {
 
   const login = async (username: string, password: string): Promise<LoginResult> => {
     try {
-      const res = await axios.post("http://localhost:3000/api/login", {
-        username,
-        password,
-      })
+      const res = await axios.get("http://localhost:3000/users")
 
-      if (res.data.success) {
-        localStorage.setItem("username", res.data.username)
+      const user = res.data.find(
+        (u: { username: string; password: string }) =>
+          u.username === username && u.password === password
+      )
+
+      if (user) {
+        localStorage.setItem("username", username)
         navigate("/welcome")
         return "success"
       } else {
-        setError("Username or Password is incorrect")
+        setError("Username หรือ Password ไม่ถูกต้อง")
         return "error"
       }
     } catch (err) {
-      setError("Username or Password is incorrect")
+      setError("เกิดข้อผิดพลาด กรุณาลองใหม่")
       return "error"
     }
   }

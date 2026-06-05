@@ -16,7 +16,7 @@ export function Dashboard() {
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col items-center gap-1">
-          <CardTitle>{username ?? "ไม่พบ username"}</CardTitle>
+          <CardTitle>{username ?? "Username Not Found"}</CardTitle>
           <Badge variant="secondary">Member</Badge>
         </div>
       </CardHeader>
@@ -40,7 +40,7 @@ export function Dashboard() {
           className="w-full mt-2"
           onClick={() => window.location.href = "http://localhost:5173"}
         >
-          Sign out
+          Sign Out
         </Button>
       </CardContent>
     </Card>
