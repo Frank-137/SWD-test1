@@ -39,7 +39,7 @@ export function LoginForm() {
             <Input
               id="username"
               type="text"
-              placeholder="frank"
+              placeholder="Input your username"
               value={fields.username}
               onChange={handleChange}
               required
@@ -50,7 +50,7 @@ export function LoginForm() {
             <Input
               id="password"
               type="password"
-              placeholder="••••••••"
+              placeholder="Input your password"
               value={fields.password}
               onChange={handleChange}
               required
