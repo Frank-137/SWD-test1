@@ -1,3 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* โค้ดอื่นๆ ที่มีอยู่แล้วอยู่ด้านล่างได้เลย */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";

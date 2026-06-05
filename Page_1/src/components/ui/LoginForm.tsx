@@ -5,46 +5,61 @@ import { Input } from "./input"
 import { Label } from "./label"
 import { Card, CardContent, CardHeader, CardTitle } from "./card"
 
-// Utility Type Required — บังคับให้ทุก field ต้องมีค่า
 type LoginFormFields = Required<{
   username: string
   password: string
 }>
 
 export function LoginForm() {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
+  const [fields, setFields] = useState<LoginFormFields>({
+    username: "",
+    password: "",
+  })
   const { login, error } = useAuth()
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFields({ ...fields, [e.target.id]: e.target.value })
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    login(fields.username, fields.password)
+  }
+
   return (
-    <Card className="w-[350px]">
-      <CardHeader>
-        <CardTitle>Login</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="username">Username</Label>
-          <Input
-            id="username"
-            type="text"
-            placeholder="Enter Your Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        <Button onClick={() => login(username, password)}>Login</Button>
-      </CardContent>
-    </Card>
+    <form onSubmit={handleSubmit}>
+      <Card className="w-[350px]">
+        <CardHeader>
+          <CardTitle className="text-center">Login</CardTitle>
+          {/* <p className="text-sm text-muted-foreground">Sign in to continue</p> */}
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              type="text"
+              placeholder="frank"
+              value={fields.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={fields.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <Button type="submit">Sign In</Button>
+        </CardContent>
+      </Card>
+    </form>
   )
 }

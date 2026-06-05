@@ -1,26 +1,31 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import axios from "axios"
 
-const USERS = [
-  { username: "Frank", password: "1234" },
-  { username: "Pat", password: "1234" },
-  { username: "swiftdynamics", password: "1234" },
-  { username: "SWD", password: "1234" },
-  { username: "Nat", password: "1234" },
-  { username: "Kong", password: "1234" },
-]
+export type LoginResult = "success" | "error"
 
 export function useAuth() {
   const [error, setError] = useState("")
+  const navigate = useNavigate()
 
-  const login = (username: string, password: string) => {
-    const user = USERS.find(
-      (u) => u.username === username && u.password === password
-    )
+  const login = async (username: string, password: string): Promise<LoginResult> => {
+    try {
+      const res = await axios.post("http://localhost:3000/api/login", {
+        username,
+        password,
+      })
 
-    if (user) {
-      window.location.href = `http://localhost:5174?username=${encodeURIComponent(username)}`
-    } else {
+      if (res.data.success) {
+        localStorage.setItem("username", res.data.username)
+        navigate("/welcome")
+        return "success"
+      } else {
+        setError("Username or Password is incorrect")
+        return "error"
+      }
+    } catch (err) {
       setError("Username or Password is incorrect")
+      return "error"
     }
   }
 
