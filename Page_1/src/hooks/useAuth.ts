@@ -22,11 +22,11 @@ export function useAuth() {
         navigate("/welcome")
         return "success"
       } else {
-        setError("Username หรือ Password ไม่ถูกต้อง")
+        setError("Username or Password is incorrect")
         return "error"
       }
     } catch (err) {
-      setError("เกิดข้อผิดพลาด กรุณาลองใหม่")
+      setError("An error occurred. Please try again.")
       return "error"
     }
   }
