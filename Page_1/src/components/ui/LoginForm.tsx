@@ -5,6 +5,12 @@ import { Input } from "./input"
 import { Label } from "./label"
 import { Card, CardContent, CardHeader, CardTitle } from "./card"
 
+// Utility Type Required — บังคับให้ทุก field ต้องมีค่า
+type LoginFormFields = Required<{
+  username: string
+  password: string
+}>
+
 export function LoginForm() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
