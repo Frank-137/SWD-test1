@@ -5,10 +5,10 @@ import { Input } from "./input"
 import { Label } from "./label"
 import { Card, CardContent, CardHeader, CardTitle } from "./card"
 
-type LoginFormFields = Required<{
+type LoginFormFields = {
   username: string
   password: string
-}>
+}
 
 export function LoginForm() {
   const [fields, setFields] = useState<LoginFormFields>({
@@ -21,17 +21,17 @@ export function LoginForm() {
     setFields({ ...fields, [e.target.id]: e.target.value })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    login(fields.username, fields.password)
+    await login(fields.username, fields.password)
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card className="w-[350px]">
+      <Card className="w-87.5">
         <CardHeader>
           <CardTitle className="text-center">Login</CardTitle>
-          {/* <p className="text-sm text-muted-foreground">Sign in to continue</p> */}
+          {/* <p className="text-sm text-muted-foreground">Login with Username and Password.</p> */}
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">

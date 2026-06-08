@@ -1,11 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { LoginForm } from "./components/ui/LoginForm"
-import { Welcome } from "./components/ui/Welcome"
-
-function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const username = localStorage.getItem("username")
-  return username ? <>{children}</> : <Navigate to="/" />
-}
+import { AuthCallback } from "./components/ui/AuthCallback"
 
 export default function App() {
   return (
@@ -20,13 +15,11 @@ export default function App() {
           }
         />
         <Route
-          path="/welcome"
+          path="/auth/callback"
           element={
-            <PrivateRoute>
-              <div className="min-h-screen flex items-center justify-center bg-[#f7f5f2]">
-                <Welcome />
-              </div>
-            </PrivateRoute>
+            <div className="min-h-screen flex items-center justify-center bg-[#f7f5f2]">
+              <AuthCallback />
+            </div>
           }
         />
       </Routes>

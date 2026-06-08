@@ -3,12 +3,19 @@ import { Avatar, AvatarFallback } from "./avatar"
 import { Badge } from "./badge"
 import { Button } from "./button"
 
+// Page_2: หน้านี้รับค่า username ผ่าน query string เท่านั้น
+// ไม่มีการจัดการ login flow ใด ๆ ใน Page_2
 export function Dashboard() {
   const params = new URLSearchParams(window.location.search)
   const username = params.get("username")
+  const accessToken = params.get("access_token")
+
+  if (accessToken) {
+    localStorage.setItem("access_token", accessToken)
+  }
 
   return (
-    <Card className="w-[350px]">
+    <Card className="w-87.5">
       <CardHeader className="flex flex-col items-center gap-3">
         <Avatar className="w-16 h-16">
           <AvatarFallback className="text-2xl bg-[#f0ede8] text-[#5a5752]">
