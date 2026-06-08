@@ -16,33 +16,36 @@ export function useAuth() {
 
   const login = async (username: string, password: string): Promise<LoginResult> => {
     try {
-      const res = await apiClient.get("/users")
-      const user = res.data.find(
-        (u: { username: string; password: string }) =>
-          u.username === username && u.password === password
-      )
-
-      if (!user) {
-        setError("Username or Password is incorrect")
-        return "error"
-      }
-
       const codeVerifier = generateCodeVerifier()
       const codeChallenge = await generateCodeChallenge(codeVerifier)
       localStorage.setItem("pkce_code_verifier", codeVerifier)
       localStorage.setItem("username", username)
 
-      const authUrl = new URL(oauthConfig.authorizationEndpoint)
-      authUrl.searchParams.set("response_type", oauthConfig.responseType)
-      authUrl.searchParams.set("client_id", oauthConfig.clientId)
-      authUrl.searchParams.set("redirect_uri", oauthConfig.redirectUri)
-      authUrl.searchParams.set("scope", oauthConfig.scope)
-      authUrl.searchParams.set("code_challenge", codeChallenge)
-      authUrl.searchParams.set("code_challenge_method", oauthConfig.codeChallengeMethod)
-      authUrl.searchParams.set("state", username)
-      authUrl.searchParams.set("username", username)
+      const payload = {
+        username,
+        password,
+        client_id: oauthConfig.clientId,
+        redirect_uri: oauthConfig.redirectUri,
+        response_type: oauthConfig.responseType,
+        scope: oauthConfig.scope,
+        code_challenge: codeChallenge,
+        code_challenge_method: oauthConfig.codeChallengeMethod,
+        state: username,
+      }
 
-      window.location.href = authUrl.toString()
+      const res = await apiClient.post("/oauth/authorize", payload)
+      const authCode = res.data?.code
+
+      if (!authCode) {
+        setError("Authorization failed. No code returned.")
+        return "error"
+      }
+
+      const callbackUrl = new URL(oauthConfig.redirectUri)
+      callbackUrl.searchParams.set("code", authCode)
+      callbackUrl.searchParams.set("state", username)
+
+      window.location.href = callbackUrl.toString()
       return "success"
     } catch (err) {
       setError("An error occurred. Please try again.")

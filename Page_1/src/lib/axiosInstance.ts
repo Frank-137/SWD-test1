@@ -6,7 +6,7 @@ import axios from "axios"
  * - Timeout: 5000ms (รอ 5 วินาที แล้วถ้ายังไม่ได้ response จะยกเลิก)
  */
 export const apiClient = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "http://localhost:4000",
   timeout: 5000,
 })
 

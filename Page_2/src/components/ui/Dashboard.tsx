@@ -3,16 +3,13 @@ import { Avatar, AvatarFallback } from "./avatar"
 import { Badge } from "./badge"
 import { Button } from "./button"
 
-// Page_2: หน้านี้รับค่า username ผ่าน query string เท่านั้น
-// ไม่มีการจัดการ login flow ใด ๆ ใน Page_2
+// Page_2: หน้านี้รับค่าและแสดงผลอย่างเดียว
+// ไม่มีการจัดการ authorize/token ใด ๆ ใน Page_2
 export function Dashboard() {
   const params = new URLSearchParams(window.location.search)
   const username = params.get("username")
   const accessToken = params.get("access_token")
-
-  if (accessToken) {
-    localStorage.setItem("access_token", accessToken)
-  }
+  const state = params.get("state")
 
   return (
     <Card className="w-87.5">
@@ -34,12 +31,12 @@ export function Dashboard() {
             <span>Active</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Role</span>
-            <span>Member</span>
+            <span className="text-muted-foreground">Access Token</span>
+            <span className="break-all text-right">{accessToken ?? "Not provided"}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Session</span>
-            <span>Active</span>
+            <span className="text-muted-foreground">State</span>
+            <span>{state ?? "-"}</span>
           </div>
         </div>
         <Button
