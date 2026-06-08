@@ -21,7 +21,7 @@ export function Welcome() {
     axios
       .get("http://localhost:8000/users/me/", {
         headers: {
-          Authorization: `Bearer ${token}` 
+          Authorization: `Bearer ${token}`
         }
       })
       .then((res) => {
@@ -34,9 +34,26 @@ export function Welcome() {
       })
   }, [navigate])
 
-  const handleLogout = () => {
-    localStorage.removeItem("access_token")
-    navigate("/")
+  const handleLogout = async () => {
+    try {
+      // 1. ยิงไปสั่งล้าง Session กลางที่ Django หลังบ้าน
+      await axios.post(
+        "http://localhost:8000/users/logout/",
+        {}, // ไม่ต้องส่ง body อะไรไป
+        {
+          withCredentials: true 
+        }
+      )
+    } catch (error) {
+      console.error("Error during backend logout:", error)
+    } finally {
+  
+      localStorage.removeItem("access_token")
+      localStorage.removeItem("refresh_token")
+
+      // เตะผู้ใช้กลับไปหน้าแรกสุด
+      navigate("/")
+    }
   }
 
   return (
