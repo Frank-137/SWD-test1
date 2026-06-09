@@ -21,7 +21,7 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // 1. เรียก localStorage เพื่อดึง token (ถ้ามี)
-    const token = localStorage.getItem("authToken")
+    const token = localStorage.getItem("access_token")
 
     // 2. ถ้ามี token ให้เพิ่มลง header ของคำขอ (Authorization: Bearer {token})
     if (token) {

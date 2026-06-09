@@ -3,9 +3,13 @@ import { Avatar, AvatarFallback } from "./avatar"
 import { Badge } from "./badge"
 import { Button } from "./button"
 
-// Page_2: หน้านี้รับค่าและแสดงผลอย่างเดียว
-// ไม่มีการจัดการ authorize/token ใด ๆ ใน Page_2
+/**
+ * Component: Dashboard
+ * - หน้านี้เป็นหน้าปลายทางสำหรับสมาชิกที่ล็อกอินผ่านเรียบร้อยแล้ว
+ * - จะทำการอ่านค่าจาก URL Parameters มาแสดงผลบนหน้าจอ และให้ผู้ใช้สิทธิ์สามารถ Sign Out ได้
+ */
 export function Dashboard() {
+  // 1. ดึงพารามิเตอร์ต่าง ๆ ที่ส่งมาจาก Page 1 ผ่านทาง URL Query String
   const params = new URLSearchParams(window.location.search)
   const username = params.get("username")
   const accessToken = params.get("access_token")
