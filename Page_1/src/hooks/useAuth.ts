@@ -33,7 +33,7 @@ export function useAuth() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
 
-  // ⚡ ฟังก์ชันที่ 1: สำหรับกดปุ่ม "Login with SSO" หน้าแรกสุด (เพื่อเริ่มลูปดีดไป Django)
+  // ฟังก์ชันที่ 1: สำหรับกดปุ่ม "Login with SSO" หน้าแรกสุด (เพื่อเริ่มลูปดีดไป Django)
   const initiateSSO = async () => {
     const codeVerifier = generateCodeVerifier()
     const codeChallenge = await generateCodeChallenge(codeVerifier)
@@ -44,7 +44,7 @@ export function useAuth() {
       response_type: "code",
       client_id: CLIENT_ID,
       redirect_uri: REDIRECT_URI,
-      scope: "read write",
+      scope: "openid profile read write",
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
     })

@@ -17,9 +17,10 @@ export default function App() {
           <Route path="/callback" element={<Callback />} />
           
           {/* เผื่อผู้ใช้พิมพ์ URL มั่วซั่ว ให้เด้งกลับไปเริ่มต้นใหม่ */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* <Route path="*" element={<Navigate to="/dashboard" replace />} /> */}
         </Routes>
       </BrowserRouter>
     </div>
   )
+
 }

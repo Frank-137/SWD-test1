@@ -4,6 +4,7 @@ import axios from "axios"
 
 const CLIENT_ID_APP1 = "czcgWBuoNW42t4aGzLJdOoJe42ZftoCYw6z4bzlH"
 const REDIRECT_URI_APP1 = "http://localhost:5174/callback"
+
 export function Callback() {
   const navigate = useNavigate()
 
@@ -32,13 +33,40 @@ export function Callback() {
           }
         )
 
-        const accessToken = response.data.access_token
-        if (accessToken) {
-          localStorage.setItem("access_token", accessToken)
+        // 🌟 1. ดึงของออกมาทั้งคู่ ทั้ง Access Token และ ID Token ของ OIDC
+        const { access_token, id_token } = response.data
+
+        if (access_token) {
+          localStorage.setItem("access_token", access_token)
+        }
+
+        // 🌟 2. ลุยแกะกล่องสแกนบัตรประชาชนดิจิทัล ควักเอาคีย์ .name ตามที่เราพิสูจน์กันใน Console
+        if (id_token) {
+          try {
+            const base64Url = id_token.split('.')[1]
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+            const jsonPayload = decodeURIComponent(
+              window.atob(base64)
+                .split('')
+                .map((c) => '%' + ('0' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+            )
+            const userProfile = JSON.parse(jsonPayload)
+
+            // บันทึกชื่อ "frank" ลงเครื่องฝั่งพอร์ต 5174 ทันที เพื่อส่งไม้ต่อให้หน้า Dashboard อ่านค่าได้
+            localStorage.setItem("username", userProfile.name)
+            if (userProfile.email) {
+              localStorage.setItem("user_email", userProfile.email)
+            }
+          } catch (parseError) {
+            console.error("OIDC JWT parsing failed in App 2:", parseError)
+          }
         }
 
         sessionStorage.removeItem("code_verifier")
-        navigate("/welcome")
+
+        // วาร์ปเข้าหน้าแดชบอร์ดด้วยความเร็วแสง
+        navigate("/dashboard")
 
       } catch (error) {
         console.error("Error exchanging code:", error)

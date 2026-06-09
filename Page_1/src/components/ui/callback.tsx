@@ -32,14 +32,39 @@ export function Callback() {
           }
         )
 
-        const accessToken = response.data.access_token
-        if (accessToken) {
-          localStorage.setItem("access_token", accessToken)
+        const { access_token, id_token } = response.data
+        if (access_token) {
+          localStorage.setItem("access_token", access_token)
+        }
+        if (id_token) {
+          try {
+            // JWT มี 3 ท่อนคั่นด้วยจุด [Header].[Payload].[Signature]เราจะตัดเอาท่อน 2 (Payload) มาใช้งาน
+            const base64Url = id_token.split('.')[1]
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+
+            // แปลง Base64 กลับมาเป็นสตริง JSON (รองรับภาษาไทยและอักขระพิเศษ)
+            const jsonPayload = decodeURIComponent(
+              window.atob(base64)
+                .split('')
+                .map((c) => '%' + ('0' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+            )
+
+            // แปลงสตริงให้กลายเป็น Object ของ JavaScript
+            const userProfile = JSON.parse(jsonPayload)
+
+            //ดึงคีย์ "username" ที่เราเขียนสั่งยัดไว้ใน oauth_validators.py หลังบ้านมาเซฟลงเครื่อง!
+            console.log("ID Token ตรวจสอบคีย์ข้างใน:", userProfile)
+            localStorage.setItem("username", userProfile.name)
+
+          } catch (parseError) {
+            console.error("JWT parsing failed, using fallback:", parseError)
+          }
         }
 
+        // ล้างค่า code_verifier ทิ้งตามปกติ
         sessionStorage.removeItem("code_verifier")
         navigate("/welcome")
-
       } catch (error) {
         console.error("Error exchanging code:", error)
         navigate("/")
