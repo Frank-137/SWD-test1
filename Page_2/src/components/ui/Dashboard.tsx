@@ -54,7 +54,7 @@ export function Dashboard() {
           code_challenge_method: "S256",
         })
 
-        // window.location.href = `http://localhost:8000/o/authorize/?${params.toString()}`
+        window.location.href = `http://localhost:8000/o/authorize/?${params.toString()}`
       } catch (e) {
         console.error("Failed to initiate SSO", e)
       }
