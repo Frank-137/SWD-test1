@@ -6,8 +6,6 @@ import axios from "axios"
 
 export function Dashboard() {
   const [user, setUser] = useState<any>(null)
-
-  // State คุมสถานะการเปิดเปิดฟอร์ม และตัวแปรช่องกรอกอีเมล
   const [isEditing, setIsEditing] = useState(false)
   const [inputEmail, setInputEmail] = useState("")
   const [loading, setLoading] = useState(false)
@@ -18,7 +16,7 @@ export function Dashboard() {
       const storedUsername = localStorage.getItem("username")
       const storedEmail = localStorage.getItem("user_email")
 
-      // ถ้าล็อกอินแล้วและมีข้อมูลในเครื่อง ยัดใส่ State วาดหน้าจอทันที 0 วินาที
+      // ถ้ามียูสเซอร์และตั๋วค้างในเครื่องอยู่แล้ว -> เปิดหน้าจอได้เลยทันที
       if (accessToken && storedUsername) {
         setUser({
           username: storedUsername,
@@ -27,6 +25,17 @@ export function Dashboard() {
         setInputEmail(storedEmail || "no-email@gmail.com")
         return
       }
+
+      // 1. สร้าง code_verifier สำหรับ PKCE หยอดใส่ sessionStorage ของ App 2 ไว้รอเลย
+      const generatedVerifier = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+      sessionStorage.setItem("code_verifier", generatedVerifier);
+
+      const clientId = "czcgWBuoNW42t4aGzLJdOoJe42ZftoCYw6z4bzlH"
+      const redirectUri = "http://localhost:5174/callback"
+
+      // 3. ดีดตัวพุ่งไปหาหลังบ้าน Django พอร์ต 8000 ทันที
+      // (ตรงนี้ใช้ code_challenge_method=plain เพื่อให้ง่ายต่อการทดสอบ หรือถ้าคุณก้องมีฟังก์ชันแฮช SHA256 ก็ปรับเปลี่ยนได้ครับ)
+      window.location.href = `http://localhost:8000/o/authorize/?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&code_challenge=${generatedVerifier}&code_challenge_method=plain`
     }
     initAuth()
   }, [])
@@ -41,7 +50,7 @@ export function Dashboard() {
       const response = await axios.post(
         "http://localhost:8000/users/update-email/",
         { email: inputEmail },
-        { headers: { Authorization: `Bearer ${token}` } } // แนบตั๋ว Access Token
+        { headers: { Authorization: `Bearer ${token}` } }
       )
 
       if (response.data.status === "success") {
@@ -78,7 +87,6 @@ export function Dashboard() {
         <div className="flex flex-col items-center gap-1">
           <CardTitle>{user.username}</CardTitle>
 
-          {/* สลับโหมดแสดงตัวหนังสือธรรมดา หรือช่อง Input บันทึกข้อมูล */}
           {!isEditing ? (
             <div className="flex flex-col items-center gap-1">
               <p className="text-sm text-gray-400">{user.email}</p>
