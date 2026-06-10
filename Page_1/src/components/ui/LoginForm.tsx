@@ -1,49 +1,72 @@
 import { useState } from "react"
-import { useAuth } from "../../hooks/useAuth"
+import { useNavigate } from "react-router-dom"
 import { Button } from "./button"
 import { Input } from "./input"
 import { Label } from "./label"
 import { Card, CardContent, CardHeader, CardTitle } from "./card"
+import axios from "axios"
+import api from "@/lib/api"
 
-// กำหนดประเภทข้อมูล (Type) สำหรับช่องข้อมูลในฟอร์ม Login
-type LoginFormFields = {
+type LoginFormFields = Required<{
   username: string
   password: string
-}
+}>
 
-/**
- * Component: LoginForm
- * - หน้าฟอร์มล็อกอินสำหรับรับ Username และ Password จากผู้ใช้
- * - เรียกใช้ useAuth hook เพื่อพาเข้าสู่กระบวนการยืนยันตัวตน
- */
 export function LoginForm() {
-  // state สำหรับผูกค่าข้อมูลช่องกรอก (Input Fields)
+  const navigate = useNavigate()
   const [fields, setFields] = useState<LoginFormFields>({
     username: "",
     password: "",
   })
-  
-  // เรียกใช้ฟังก์ชัน login และดึง error จาก useAuth hook
-  const { login, error } = useAuth()
+  const [authError, setAuthError] = useState<string | null>(null)
 
-  // ฟังก์ชัน handleChange สำหรับจับคู่ค่าข้อมูลที่มีการเปลี่ยนแปลงในแต่ละช่อง Input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFields({ ...fields, [e.target.id]: e.target.value })
   }
 
-  // ฟังก์ชัน handleSubmit ทำงานเมื่อผู้ใช้กด Submit ฟอร์มล็อกอิน
+  // ฟังก์ชัน Submit ให้เดินตามสเต็ป SSO Custom Login
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // ส่งข้อมูล username/password ไปทำการล็อกอินและส่งต่อไปยังขั้นตอนตรวจสอบของ OAuth PKCE
-    await login(fields.username, fields.password)
+    setAuthError(null)
+
+    try {
+      // ยิงไปตรวจรหัสผ่านที่ API ตัวใหม่ที่เราสร้างไว้ใน Django 
+      await api.post(
+        "/users/login/",
+        {
+          username: fields.username,
+          password: fields.password,
+        }
+      )
+
+      //  แอบส่องดูบน URL ของเบราว์เซอร์ว่ามีตัวแปร ?next=... ฝากมาไหม
+      const urlParams = new URLSearchParams(window.location.search)
+      const nextParam = urlParams.get("next")
+
+      if (nextParam) {
+        // เช็คว่าถ้า nextParam มี http นำหน้ามาอยู่แล้ว ให้สั่งวิ่งไปค่านั้นตรงๆ เลย
+        if (nextParam.startsWith("http")) {
+          window.location.href = nextParam
+        } else {
+          // เผื่อบางกรณี Django ส่งมาเป็นพาร์ทสั้น เช่น /o/authorize/... ค่อยแปะ domain เพิ่ม
+          window.location.href = `http://localhost:8000${nextParam}`
+        }
+      } else {
+        // ถ้าไม่มี next แปลว่าเข้า App 1 ตรงๆ
+        window.location.href = "http://localhost:5173"
+      }
+
+    } catch (err: any) {
+      // ถ้าหลังบ้านตอบ 400 หรือรหัสผ่านผิด ให้เอาข้อความเออเร่อมาโชว์บนหน้าจอ
+      setAuthError(err.response?.data?.error || "เกิดข้อผิดพลาดในการเชื่อมต่อระบบล็อกอิน")
+    }
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card className="w-87.5">
+      <Card className="w-[350px]">
         <CardHeader>
           <CardTitle className="text-center">Login</CardTitle>
-          {/* <p className="text-sm text-muted-foreground">Login with Username and Password.</p> */}
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
@@ -68,8 +91,9 @@ export function LoginForm() {
               required
             />
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          <Button type="submit">Sign In</Button>
+          {/* แสดงผล Error ของ SSO */}
+          {authError && <p className="text-red-500 text-sm text-center">{authError}</p>}
+          <Button type="submit" className="w-full">Sign In</Button>
         </CardContent>
       </Card>
     </form>

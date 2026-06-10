@@ -10,7 +10,4 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-    server: {
-    port: 5173, // เปลี่ยนตัวเลข Port ที่ต้องการตรงนี้
-  },
 });
