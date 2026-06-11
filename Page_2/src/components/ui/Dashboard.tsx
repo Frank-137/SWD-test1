@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./card"
 import { Avatar, AvatarFallback } from "./avatar"
 import { Button } from "./button"
 import { useEffect, useState } from "react"
-import axios from "axios"
+import api from "@/lib/api"
 
 const CLIENT_ID_APP2 = "czcgWBuoNW42t4aGzLJdOoJe42ZftoCYw6z4bzlH"
 const REDIRECT_URI_APP2 = "http://localhost:5174/callback"
@@ -41,14 +41,10 @@ export function Dashboard() {
 
   useEffect(() => {
     async function initAuth() {
-      // เช็ค localStorage ว่ามี access_token กับ username มั้ย ถ้ามี redirect เลย ถ้าไม่มี วนกลับ PKCE ใหม่
       const accessToken = localStorage.getItem("access_token")
       const storedUsername = localStorage.getItem("username")
-
-      // ดึงอีเมลที่เซฟไว้จาก Local Storage
       const storedEmail = localStorage.getItem("user_email")
 
-      // ถ้ามีของครบในเครื่องแล้ว จับม้วนรวมใส่ State แล้วเปิดหน้าจอทันที ไม่ต้องยิงคิวรี่
       if (accessToken && storedUsername) {
         const email = storedEmail || "no-email@gmail.com"
 
@@ -57,7 +53,6 @@ export function Dashboard() {
           email: email,
         })
 
-        // เอาอีเมลเดิมไปใส่ใน input ไว้ก่อน เผื่อผู้ใช้กด Edit Email
         setInputEmail(email)
         return
       }
@@ -66,7 +61,6 @@ export function Dashboard() {
         const codeVerifier = generateCodeVerifier()
         const codeChallenge = await generateCodeChallenge(codeVerifier)
 
-        // แอบเก็บ code_verifier ไว้ใน sessionStorage เพื่อใช้ตอนหน้า callback เอา code ไปแลก token
         sessionStorage.setItem("code_verifier", codeVerifier)
 
         const params = new URLSearchParams({
@@ -78,7 +72,6 @@ export function Dashboard() {
           code_challenge_method: "S256",
         })
 
-        // ดีดตัวไปหา OAuth Server ของ Django เพื่อขอ Authorization Code
         window.location.href = `http://localhost:8000/o/authorize/?${params.toString()}`
       } catch (e) {
         console.error("Failed to initiate SSO", e)
@@ -88,41 +81,26 @@ export function Dashboard() {
     initAuth()
   }, [])
 
-  // ฟังก์ชันยิงข้ามพอร์ตไปขอแก้ไขอีเมลที่หลังบ้าน Django
+  // ฟังก์ชันแก้ไขอีเมลที่ปรับปรุงให้รองรับ Interceptor เผื่อ Token พัง ✨
   const handleSaveEmail = async () => {
-    const token = localStorage.getItem("access_token")
-
-    // ถ้าไม่มี access_token แปลว่ายังไม่ได้ login หรือ token หาย
-    if (!token) return
-
     setLoading(true)
 
     try {
-      const response = await axios.post(
-        "http://localhost:8000/users/update-email/",
-        {
-          email: inputEmail,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
+      // 🚀 ใช้ api.post แทน และหั่น baseURL ออก เหลือเพียงพาร์ทปลายทางสั้น ๆ
+      // 🚀 ไม่ต้องแนบตั๋ว (Headers) เองแล้ว เพราะระบบ Request Interceptor จัดการให้ที่เบื้องหลัง
+      const response = await api.post("/users/update-email/", {
+        email: inputEmail,
+      })
 
       if (response.data.status === "success") {
-        // อัปเดตอีเมลใน localStorage ให้ตรงกับข้อมูลใหม่
         localStorage.setItem("user_email", inputEmail)
 
-        // อัปเดต state เพื่อให้หน้าเว็บเปลี่ยนทันทีโดยไม่ต้อง refresh
         setUser((prev: any) => ({
           ...prev,
           email: inputEmail,
         }))
 
-        // ปิดโหมดแก้ไข
         setIsEditing(false)
-
         alert("แก้ไขอีเมลสำเร็จ!")
       }
     } catch (error) {
@@ -136,22 +114,15 @@ export function Dashboard() {
   if (!user) {
     return <p>Loading SSO Dashboard...</p>
   }
+
+  // ฟังก์ชัน Logout ที่ปรับปรุงมาใช้กลไก api.post เช่นเดียวกัน ✨
   const handleLogout = async () => {
     const token = localStorage.getItem("access_token")
 
     try {
-      await axios.post(
-        "http://localhost:8000/users/logout/",
-        {
-          access_token: token,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
-      )
+      await api.post("/users/logout/", {
+        access_token: token,
+      })
     } catch (error) {
       console.error("Logout failed:", error)
     } finally {
@@ -175,12 +146,10 @@ export function Dashboard() {
         <div className="flex flex-col items-center gap-1">
           <CardTitle>{user.username}</CardTitle>
 
-          {/* Gmail โชว์ */}
           {!isEditing ? (
             <div className="flex flex-col items-center gap-1">
               <p className="text-sm text-gray-400">{user.email}</p>
 
-              {/* ปุ่มเปิดโหมดแก้ไขอีเมล */}
               <Button
                 variant="outline"
                 size="sm"
@@ -192,7 +161,6 @@ export function Dashboard() {
             </div>
           ) : (
             <div className="flex flex-col gap-2 mt-2 items-center">
-              {/* ช่องกรอกอีเมลใหม่ */}
               <input
                 type="email"
                 value={inputEmail}
@@ -202,7 +170,6 @@ export function Dashboard() {
               />
 
               <div className="flex gap-2">
-                {/* ยิง API ไปแก้ไขอีเมลที่ Django */}
                 <Button
                   size="sm"
                   onClick={handleSaveEmail}
@@ -211,7 +178,6 @@ export function Dashboard() {
                   {loading ? "Saving..." : "Save"}
                 </Button>
 
-                {/* ยกเลิกการแก้ไขและกลับไปดูข้อมูลเดิม */}
                 <Button
                   size="sm"
                   variant="ghost"
@@ -229,7 +195,6 @@ export function Dashboard() {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-3">
-        {/* ปุ่ม logout ออกจาก App 2 แล้วกลับไปหน้า App 1 */}
         <Button
           variant="outline"
           className="w-full mt-2"

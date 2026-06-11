@@ -1,10 +1,9 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import axios from "axios"
-import api from "@/lib/api"
+import axios from "axios" // 🚀 แนะนำใช้ axios ตัวหลักเพื่อคุมคอนเทนต์ x-www-form-urlencoded ได้เนียนๆ
 
-const CLIENT_ID_APP1 = "czcgWBuoNW42t4aGzLJdOoJe42ZftoCYw6z4bzlH"
-const REDIRECT_URI_APP1 = "http://localhost:5174/callback"
+const CLIENT_ID_APP2 = "czcgWBuoNW42t4aGzLJdOoJe42ZftoCYw6z4bzlH" // ตรวจสอบ ID ของ App 2 ใน Django Admin อีกครั้งนะครับ
+const REDIRECT_URI_APP2 = "http://localhost:5174/callback"
 
 export function Callback() {
   const navigate = useNavigate()
@@ -21,26 +20,32 @@ export function Callback() {
       }
 
       try {
-        const response = await api.post("/users/oauth/exchange/",
+        const payload = {
+          grant_type: "authorization_code", 
+          code: code,
+          code_verifier: codeVerifier,
+          client_id: CLIENT_ID_APP2,
+          redirect_uri: REDIRECT_URI_APP2,
+        }
+        const response = await axios.post(
+          "http://localhost:8000/o/token/",
+          new URLSearchParams(payload), 
           {
-            code,
-            code_verifier: codeVerifier,
-            client_id: CLIENT_ID_APP1,
-            redirect_uri: REDIRECT_URI_APP1,
-          },
-          {
-            withCredentials: true,
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            withCredentials: true, 
           }
         )
 
-        // 1. ดึงของออกมาทั้งคู่ ทั้ง Access Token และ ID Token ของ OIDC
+        // ดึงของออกมา ทั้ง Access Token และ ID Token ของ OIDC
         const { access_token, id_token } = response.data
 
         if (access_token) {
           localStorage.setItem("access_token", access_token)
         }
 
-        // 2. ลุยแกะกล่องสแกนบัตรประชาชนดิจิทัล ควักเอาคีย์ .name ตามที่เราพิสูจน์กันใน Console
+        // แกะกล่อง ID Token คลี่ดูข้อมูลส่วนตัวผู้ใช้ (ท่อนเดิมของคุณก้อง ดีมากอยู่แล้ว)
         if (id_token) {
           try {
             const base64Url = id_token.split('.')[1]
@@ -52,9 +57,12 @@ export function Callback() {
                 .join('')
             )
             const userProfile = JSON.parse(jsonPayload)
+            console.log("📝 [Debug] แกะไส้ใน ID Token แดชบอร์ดสำเร็จ:", userProfile)
 
-            // บันทึกชื่อ "frank" ลงเครื่องฝั่งพอร์ต 5174 ทันที เพื่อส่งไม้ต่อให้หน้า Dashboard อ่านค่าได้
-            localStorage.setItem("username", userProfile.name)
+            // คีย์มาตรฐานใน ID Token มักจะเป็น .name หรือ .preferred_username
+            const finalUsername = userProfile.name || userProfile.preferred_username || userProfile.username
+
+            localStorage.setItem("username", finalUsername)
             if (userProfile.email) {
               localStorage.setItem("user_email", userProfile.email)
             }
@@ -63,13 +71,17 @@ export function Callback() {
           }
         }
 
+        // ✨ 3. เคลียร์คีย์ ?code= บน URL ทิ้งด่วน! เพื่อตัดวงจรรัวยิง Infinite Loop
+        window.history.replaceState({}, document.title, window.location.pathname)
+
+        // ลบกล่องจำตัวยืนยันรหัสผ่าน PKCE
         sessionStorage.removeItem("code_verifier")
 
-        // วาร์ปเข้าหน้าแดชบอร์ดด้วยความเร็วแสง
+        // 🚀 4. วาร์ปส่งตัวกลับเข้าสู่หน้า Dashboard หลักอย่างสวยงาม
         navigate("/dashboard")
 
-      } catch (error) {
-        console.error("Error exchanging code:", error)
+      } catch (error: any) {
+        console.error("❌ Error exchanging code:", error.response?.data || error.message)
         navigate("/")
       }
     }

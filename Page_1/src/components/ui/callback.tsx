@@ -1,9 +1,10 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import api from "@/lib/api"
+import axios from "axios" 
 
 const CLIENT_ID_APP1 = "vFNeSjouVzhE7gpdTBsUOFjPayJfjjOdy2fgJsaO"
 const REDIRECT_URI_APP1 = "http://localhost:5173/callback"
+
 export function Callback() {
   const navigate = useNavigate()
 
@@ -11,7 +12,7 @@ export function Callback() {
     async function exchangeCode() {
       const params = new URLSearchParams(window.location.search)
       const code = params.get("code")
-      const codeVerifier = sessionStorage.getItem("code_verifier") // ดึง code_verifier จาก sessionStorage ที่เคยเก็บไว้
+      const codeVerifier = sessionStorage.getItem("code_verifier")
 
       if (!code || !codeVerifier) {
         navigate("/")
@@ -19,28 +20,38 @@ export function Callback() {
       }
 
       try {
-        const response = await api.post(
-          "/users/oauth/exchange/",
+        //เตรียมก้อนข้อมูลตามสเปกมาตรฐาน OAuth 2.0
+        const payload = {
+          grant_type: "authorization_code", 
+          code: code,
+          code_verifier: codeVerifier,
+          client_id: CLIENT_ID_APP1,
+          redirect_uri: REDIRECT_URI_APP1,
+        }
+
+        // ยิงตรงเข้าหาเส้น /o/token/ ของ Django OAuth Toolkit
+        const response = await axios.post(
+          "http://localhost:8000/o/token/",
+          new URLSearchParams(payload), // แปลงก้อน Object ให้กลายเป็น x-www-form-urlencoded อัตโนมัติ
           {
-            code,
-            code_verifier: codeVerifier,
-            client_id: CLIENT_ID_APP1,
-            redirect_uri: REDIRECT_URI_APP1,
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            withCredentials: true, 
           }
         )
 
         const { access_token, id_token } = response.data
+
         if (access_token) {
           localStorage.setItem("access_token", access_token)
         }
-        // save access_token กับ username จาก id_token ลง localStorage เพื่อใช้ในหน้า Welcome ต่อไป
+
+        // ถอดรหัส ID Token 
         if (id_token) {
           try {
-            // JWT มี 3 ท่อนคั่นด้วยจุด [Header].[Payload].[Signature]เราจะตัดเอาท่อน 2 (Payload) มาใช้งาน
             const base64Url = id_token.split('.')[1]
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-
-            // แปลง Base64 กลับมาเป็นสตริง JSON (รองรับภาษาไทยและอักขระพิเศษ)
             const jsonPayload = decodeURIComponent(
               window.atob(base64)
                 .split('')
@@ -48,23 +59,26 @@ export function Callback() {
                 .join('')
             )
 
-            // แปลงสตริงให้กลายเป็น Object ของ JavaScript
             const userProfile = JSON.parse(jsonPayload)
-
-            //ดึงคีย์ "username" ที่เราเขียนสั่งยัดไว้ใน oauth_validators.py หลังบ้านมาเซฟลงเครื่อง!
             console.log("ID Token ตรวจสอบคีย์ข้างใน:", userProfile)
-            localStorage.setItem("username", userProfile.name)
+
+            // เก็บชื่อและอีเมล (ถ้ามีพ่นออกมาจากระบบ Claims หลังบ้าน)
+            localStorage.setItem("username", userProfile.name || userProfile.preferred_username)
+            if (userProfile.email) {
+              localStorage.setItem("user_email", userProfile.email)
+            }
 
           } catch (parseError) {
-            console.error("JWT parsing failed, using fallback:", parseError)
+            console.error("JWT parsing failed:", parseError)
           }
         }
-
-        // ลบ code_verifier จาก sessionStorage และพาไป Page_2
+        window.history.replaceState({}, document.title, window.location.pathname);
+        // ลบคีย์ถอนความจำ PKCE ออก และสั่งวาร์ปสลับแอป
         sessionStorage.removeItem("code_verifier")
-        window.location.href = "http://localhost:5174"
-      } catch (error) {
-        console.error("Error exchanging code:", error)
+        window.location.href = "http://localhost:5173/welcome" // ดีดไปหาหน้า Dashboard ของ App 2
+
+      } catch (error: any) {
+        console.error("Error exchanging code:", error.response?.data || error.message)
         navigate("/")
       }
     }
