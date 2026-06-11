@@ -20,7 +20,7 @@ export function Callback() {
 
       try {
         const response = await api.post(
-          "/users/oauth/exchange/",
+          "/users/oauth/exchange/", // ยิง axios แทน
           {
             code,
             code_verifier: codeVerifier,
@@ -51,7 +51,7 @@ export function Callback() {
             // แปลงสตริงให้กลายเป็น Object ของ JavaScript
             const userProfile = JSON.parse(jsonPayload)
 
-            //ดึงคีย์ "username" ที่เราเขียนสั่งยัดไว้ใน oauth_validators.py หลังบ้านมาเซฟลงเครื่อง!
+            // ดึงคีย์ "username" ที่เราเขียนสั่งยัดไว้ใน oauth_validators.py หลังบ้านมาเซฟลงเครื่อง
             console.log("ID Token ตรวจสอบคีย์ข้างใน:", userProfile)
             localStorage.setItem("username", userProfile.name)
 
@@ -60,9 +60,9 @@ export function Callback() {
           }
         }
 
-        // ลบ code_verifier จาก sessionStorage และพาไป Page_2
+        // ลบ code_verifier จาก sessionStorage แล้วไปหน้า Welcome
         sessionStorage.removeItem("code_verifier")
-        window.location.href = "http://localhost:5174"
+        navigate("/welcome")
       } catch (error) {
         console.error("Error exchanging code:", error)
         navigate("/")
