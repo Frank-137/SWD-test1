@@ -1,6 +1,5 @@
 import axios from "axios"
 
-
 const CLIENT_ID_APP1 = "vFNeSjouVzhE7gpdTBsUOFjPayJfjjOdy2fgJsaO"
 
 const api = axios.create({

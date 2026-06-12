@@ -1,11 +1,10 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Button } from "./button"
-import { Input } from "./input"
-import { Label } from "./label"
-import { Card, CardContent, CardHeader, CardTitle } from "./card"
-import axios from "axios"
-import api from "@/lib/api"
+import { Button } from "../../../shared/ui/button"
+import { Input } from "../../../shared/ui/input"
+import { Label } from "../../../shared/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "../../../shared/ui/card"
+import api from "@/shared/api/axios"
 
 type LoginFormFields = Required<{
   username: string
