@@ -4,6 +4,8 @@ import api from "@/lib/api"
 import { Button } from "./button"
 import { Card, CardContent, CardHeader, CardTitle } from "./card"
 
+const CLIENT_ID_APP1 = "vFNeSjouVzhE7gpdTBsUOFjPayJfjjOdy2fgJsaO"
+
 export function Welcome() {
     const navigate = useNavigate()
     const [username, setUsername] = useState("")
@@ -21,7 +23,7 @@ export function Welcome() {
                 setUsername(res.data.username)
             })
             .catch(() => {
-                // บล็อกนี้จะทำงานก็ต่อเมื่อ "ทั้ง Access และ Refresh Token พังคู่" เท่านั้น
+                // ะทำงานก็ต่อเมื่อ "ทั้ง Access และ Refresh Token พังคู่" เท่านั้น
                 localStorage.removeItem("access_token")
                 localStorage.removeItem("username")
                 navigate("/")
@@ -34,6 +36,7 @@ export function Welcome() {
         try {
             await api.post("/users/logout/", {
                 access_token: token,
+                client_id: CLIENT_ID_APP1,
             })
         } catch (error) {
             console.error("Error during backend logout:", error)
@@ -56,7 +59,7 @@ export function Welcome() {
             <CardHeader>
                 <CardTitle>Welcome, {username} 👋</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                    You logged in via SSO successfully.
+                    You logged in via APP! successfully.
                 </p>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">

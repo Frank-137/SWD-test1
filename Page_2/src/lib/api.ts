@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const CLIENT_ID_APP2 = "czcgWBuoNW42t4aGzLJdOoJe42ZftoCYw6z4bzlH"
+const CLIENT_ID_APP2 = "vFNeSjouVzhE7gpdTBsUOFjPayJfjjOdy2fgJsaO"
 
 const api = axios.create({
   baseURL: "http://localhost:8000",
@@ -39,7 +39,7 @@ api.interceptors.response.use(
             headers: {
               "Content-Type": "application/x-www-form-urlencoded",
             },
-            withCredentials: true, // ตัวพาคุกกี้ refresh_token ข้ามพอร์ต
+            withCredentials: true, 
           }
         )
 

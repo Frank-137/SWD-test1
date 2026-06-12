@@ -1,8 +1,8 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import axios from "axios" // 🚀 แนะนำใช้ axios ตัวหลักเพื่อคุมคอนเทนต์ x-www-form-urlencoded ได้เนียนๆ
+import axios from "axios" 
 
-const CLIENT_ID_APP2 = "czcgWBuoNW42t4aGzLJdOoJe42ZftoCYw6z4bzlH" // ตรวจสอบ ID ของ App 2 ใน Django Admin อีกครั้งนะครับ
+const CLIENT_ID_APP2 = "vFNeSjouVzhE7gpdTBsUOFjPayJfjjOdy2fgJsaO" 
 const REDIRECT_URI_APP2 = "http://localhost:5174/callback"
 
 export function Callback() {
@@ -57,7 +57,7 @@ export function Callback() {
                 .join('')
             )
             const userProfile = JSON.parse(jsonPayload)
-            console.log("📝 [Debug] แกะไส้ใน ID Token แดชบอร์ดสำเร็จ:", userProfile)
+            console.log("[Debug] แกะไส้ใน ID Token แดชบอร์ดสำเร็จ:", userProfile)
 
             // คีย์มาตรฐานใน ID Token มักจะเป็น .name หรือ .preferred_username
             const finalUsername = userProfile.name || userProfile.preferred_username || userProfile.username
@@ -71,17 +71,15 @@ export function Callback() {
           }
         }
 
-        // ✨ 3. เคลียร์คีย์ ?code= บน URL ทิ้งด่วน! เพื่อตัดวงจรรัวยิง Infinite Loop
+        // เคลียร์คีย์ ?code= บน URL ทิ้งเพื่อตัดวงจรรัวยิง Infinite Loop
         window.history.replaceState({}, document.title, window.location.pathname)
 
         // ลบกล่องจำตัวยืนยันรหัสผ่าน PKCE
         sessionStorage.removeItem("code_verifier")
-
-        // 🚀 4. วาร์ปส่งตัวกลับเข้าสู่หน้า Dashboard หลักอย่างสวยงาม
         navigate("/dashboard")
 
       } catch (error: any) {
-        console.error("❌ Error exchanging code:", error.response?.data || error.message)
+        console.error(" Error exchanging code:", error.response?.data || error.message)
         navigate("/")
       }
     }
@@ -91,7 +89,7 @@ export function Callback() {
 
   return (
     <div className="flex h-screen w-full items-center justify-center">
-      <p className="text-lg text-gray-500">Logging in to SSO...</p>
+      <p className="text-lg text-gray-500">Logging in...</p>
     </div>
   )
 }

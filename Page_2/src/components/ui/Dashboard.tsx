@@ -4,7 +4,7 @@ import { Button } from "./button"
 import { useEffect, useState } from "react"
 import api from "@/lib/api"
 
-const CLIENT_ID_APP2 = "czcgWBuoNW42t4aGzLJdOoJe42ZftoCYw6z4bzlH"
+const CLIENT_ID_APP2 = "vFNeSjouVzhE7gpdTBsUOFjPayJfjjOdy2fgJsaO"
 const REDIRECT_URI_APP2 = "http://localhost:5174/callback"
 
 function generateCodeVerifier() {
@@ -81,13 +81,10 @@ export function Dashboard() {
     initAuth()
   }, [])
 
-  // ฟังก์ชันแก้ไขอีเมลที่ปรับปรุงให้รองรับ Interceptor เผื่อ Token พัง ✨
   const handleSaveEmail = async () => {
     setLoading(true)
 
     try {
-      // 🚀 ใช้ api.post แทน และหั่น baseURL ออก เหลือเพียงพาร์ทปลายทางสั้น ๆ
-      // 🚀 ไม่ต้องแนบตั๋ว (Headers) เองแล้ว เพราะระบบ Request Interceptor จัดการให้ที่เบื้องหลัง
       const response = await api.post("/users/update-email/", {
         email: inputEmail,
       })
@@ -115,13 +112,14 @@ export function Dashboard() {
     return <p>Loading SSO Dashboard...</p>
   }
 
-  // ฟังก์ชัน Logout ที่ปรับปรุงมาใช้กลไก api.post เช่นเดียวกัน ✨
+  // ฟังก์ชัน Logout 
   const handleLogout = async () => {
     const token = localStorage.getItem("access_token")
 
     try {
       await api.post("/users/logout/", {
         access_token: token,
+        client_id: CLIENT_ID_APP2,
       })
     } catch (error) {
       console.error("Logout failed:", error)

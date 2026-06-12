@@ -88,7 +88,7 @@ export function Callback() {
 
   return (
     <div className="flex h-screen w-full items-center justify-center">
-      <p className="text-lg text-gray-500">Logging in to SSO...</p>
+      <p className="text-lg text-gray-500">Logging in...</p>
     </div>
   )
 }
