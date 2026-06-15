@@ -1,9 +1,7 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import axios from "axios" 
-
-const CLIENT_ID_APP1 = "vFNeSjouVzhE7gpdTBsUOFjPayJfjjOdy2fgJsaO"
-const REDIRECT_URI_APP1 = "http://localhost:5173/callback"
+import axios from "axios"
+import { CLIENT_ID, REDIRECT_URI, TOKEN_URL, STORAGE_KEYS, SESSION_KEYS } from "@/shared/lib/constants"
 
 export function Callback() {
   const navigate = useNavigate()
@@ -12,7 +10,7 @@ export function Callback() {
     async function exchangeCode() {
       const params = new URLSearchParams(window.location.search)
       const code = params.get("code")
-      const codeVerifier = sessionStorage.getItem("code_verifier")
+      const codeVerifier = sessionStorage.getItem(SESSION_KEYS.CODE_VERIFIER)
 
       if (!code || !codeVerifier) {
         navigate("/")
@@ -22,32 +20,32 @@ export function Callback() {
       try {
         //เตรียมก้อนข้อมูลตามสเปกมาตรฐาน OAuth 2.0
         const payload = {
-          grant_type: "authorization_code", 
+          grant_type: "authorization_code",
           code: code,
           code_verifier: codeVerifier,
-          client_id: CLIENT_ID_APP1,
-          redirect_uri: REDIRECT_URI_APP1,
+          client_id: CLIENT_ID,
+          redirect_uri: REDIRECT_URI,
         }
 
         // ยิงตรงเข้าหาเส้น /o/token/ ของ Django OAuth Toolkit
         const response = await axios.post(
-          "http://localhost:8000/o/token/",
+          TOKEN_URL,
           new URLSearchParams(payload), // แปลงก้อน Object ให้กลายเป็น x-www-form-urlencoded อัตโนมัติ
           {
             headers: {
               "Content-Type": "application/x-www-form-urlencoded",
             },
-            withCredentials: true, 
+            withCredentials: true,
           }
         )
 
         const { access_token, id_token } = response.data
 
         if (access_token) {
-          localStorage.setItem("access_token", access_token)
+          localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access_token)
         }
 
-        // ถอดรหัส ID Token 
+        // ถอดรหัส ID Token
         if (id_token) {
           try {
             const base64Url = id_token.split('.')[1]
@@ -63,9 +61,9 @@ export function Callback() {
             console.log("ID Token ตรวจสอบคีย์ข้างใน:", userProfile)
 
             // เก็บชื่อและอีเมล (ถ้ามีพ่นออกมาจากระบบ Claims หลังบ้าน)
-            localStorage.setItem("username", userProfile.name || userProfile.preferred_username)
+            localStorage.setItem(STORAGE_KEYS.USERNAME, userProfile.name || userProfile.preferred_username)
             if (userProfile.email) {
-              localStorage.setItem("user_email", userProfile.email)
+              localStorage.setItem(STORAGE_KEYS.USER_EMAIL, userProfile.email)
             }
 
           } catch (parseError) {
@@ -74,8 +72,8 @@ export function Callback() {
         }
         window.history.replaceState({}, document.title, window.location.pathname);
         // ลบคีย์ถอนความจำ PKCE ออก และสั่งวาร์ปสลับแอป
-        sessionStorage.removeItem("code_verifier")
-        window.location.href = "http://localhost:5173/welcome" // ดีดไปหาหน้า Dashboard ของ App 2
+        sessionStorage.removeItem(SESSION_KEYS.CODE_VERIFIER)
+        window.location.href = "/welcome"
 
       } catch (error: any) {
         console.error("Error exchanging code:", error.response?.data || error.message)

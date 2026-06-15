@@ -1,15 +1,14 @@
 import axios from "axios"
-
-const CLIENT_ID_APP1 = "vFNeSjouVzhE7gpdTBsUOFjPayJfjjOdy2fgJsaO"
+import { CLIENT_ID, API_BASE_URL, TOKEN_URL, STORAGE_KEYS } from "@/shared/lib/constants"
 
 const api = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: API_BASE_URL,
   withCredentials: true,
 })
 
 // Request interceptor — แนบ token ให้ทุก request อัตโนมัติ
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token")
+  const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -28,12 +27,12 @@ api.interceptors.response.use(
       try {
         const payload = {
           grant_type: "refresh_token",
-          client_id: CLIENT_ID_APP1, 
+          client_id: CLIENT_ID,
         }
 
         // ขอ access_token ใหม่จาก Django
         const res = await axios.post(
-          "http://localhost:8000/o/token/",
+          TOKEN_URL,
           new URLSearchParams(payload),
           {
             headers: {
@@ -44,7 +43,7 @@ api.interceptors.response.use(
         )
 
         const newAccessToken = res.data.access_token
-        localStorage.setItem("access_token", newAccessToken)
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, newAccessToken)
 
         // retry request เดิมด้วย token ใหม่
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
@@ -52,9 +51,9 @@ api.interceptors.response.use(
 
       } catch (refreshError) {
         // refresh ไม่ได้ → ล้างข้อมูลทั้งหมดในเครื่อง
-        localStorage.removeItem("access_token")
-        localStorage.removeItem("username")
-        localStorage.removeItem("user_email")
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
+        localStorage.removeItem(STORAGE_KEYS.USERNAME)
+        localStorage.removeItem(STORAGE_KEYS.USER_EMAIL)
 
         window.location.href = "/"
       }

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import api from "@/shared/api/axios"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
-import { STORAGE_KEYS, CLIENT_ID } from "@/shared/lib/constants"
+import { STORAGE_KEYS, CLIENT_ID, APP2_URL } from "@/shared/lib/constants"
 
 export function Welcome() {
   const navigate = useNavigate()
@@ -46,7 +46,7 @@ export function Welcome() {
         <p className="text-sm text-muted-foreground">You logged in via APP! successfully.</p>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <Button className="w-full" onClick={() => window.open("http://localhost:5174", "_blank")}>
+        <Button className="w-full" onClick={() => window.open(APP2_URL, "_blank")}>
           Go to Page 2
         </Button>
       </CardContent>

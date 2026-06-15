@@ -5,6 +5,7 @@ import { Input } from "../../../shared/ui/input"
 import { Label } from "../../../shared/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../shared/ui/card"
 import api from "@/shared/api/axios"
+import { API_BASE_URL, APP1_URL } from "@/shared/lib/constants"
 
 type LoginFormFields = Required<{
   username: string
@@ -48,11 +49,11 @@ export function LoginForm() {
           window.location.href = nextParam
         } else {
           // เผื่อบางกรณี Django ส่งมาเป็นพาร์ทสั้น เช่น /o/authorize/... ค่อยแปะ domain เพิ่ม
-          window.location.href = `http://localhost:8000${nextParam}`
+          window.location.href = `${API_BASE_URL}${nextParam}`
         }
       } else {
         // ถ้าไม่มี next แปลว่าเข้า App 1 ตรงๆ
-        window.location.href = "http://localhost:5173"
+        window.location.href = APP1_URL
       }
 
     } catch (err: any) {

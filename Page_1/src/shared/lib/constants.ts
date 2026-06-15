@@ -1,6 +1,9 @@
-export const CLIENT_ID = "vFNeSjouVzhE7gpdTBsUOFjPayJfjjOdy2fgJsaO"
-export const REDIRECT_URI = "http://localhost:5173/callback"
-export const API_BASE_URL = "http://localhost:8000"
+export const CLIENT_ID = import.meta.env.VITE_CLIENT_ID
+export const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+export const TOKEN_URL = import.meta.env.VITE_TOKEN_URL
+export const APP1_URL = import.meta.env.VITE_APP1_URL
+export const APP2_URL = import.meta.env.VITE_APP2_URL
 
 export const STORAGE_KEYS = {
   ACCESS_TOKEN: "access_token",
